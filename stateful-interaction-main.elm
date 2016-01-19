@@ -8,7 +8,6 @@ type alias Model = Int
 
 type Action
   = Idle
-  | History
   | Increment
 
 actMailbox = Signal.mailbox Idle
