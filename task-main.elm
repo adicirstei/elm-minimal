@@ -1,30 +1,28 @@
 module Main where
 import Html exposing (..)
 import Html.Events as E
-import Html.Attributes as A
+import Random.Extras as Rex
+import Task
 import Signal
 
-type alias Model = Int
+type alias Model = Float
 
 type Action
   = Idle
-  | Animate
+  | GetRandom
 
 actMailbox = Signal.mailbox Idle
-initialModel = 77
-
-update : Action -> Model -> Model
-update a m =
-  m + 10
+rndMailbox = Signal.mailbox 0.0
 
 view : Signal.Address Action -> Model -> Html
 view a m =
   div []
-    [ h1 [ A.style [("position", "absolute") , ("left", (toString m) ++ "px") ] ] [ text "Buuuu! ", text <| toString m ]
-    , button [ E.onClick a Animate ] [ text "Animate" ]
+    [ h1 [] [ text "Random from js: ", text <| toString m ]
+    , button [ E.onClick a GetRandom ] [ text "Get random" ]
   ]
 
+port taskRunner : Signal.Signal (Task.Task x ())
+port taskRunner =
+  Signal.map (\_ -> Rex.random `Task.andThen` (Signal.send rndMailbox.address) ) actMailbox.signal
 
-modelStream = Signal.foldp (update) initialModel actMailbox.signal
-
-main = Signal.map (view actMailbox.address) modelStream
+main = Signal.map (view actMailbox.address) rndMailbox.signal
